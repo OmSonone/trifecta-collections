@@ -1,7 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  images: {
+    domains: [],
+    // Allow local uploads directory
+    unoptimized: true,
+  },
 };
 
 export default nextConfig;

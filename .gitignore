@@ -33,9 +33,20 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# npm configuration (may contain private registry info)
+.npmrc
+
+# user data - should not be committed to repo
+submissions.json
+/public/uploads/
+dev.db
+dev.db-journal
+
 # vercel
 .vercel
 
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+/app/generated/prisma
