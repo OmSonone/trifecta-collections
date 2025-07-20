@@ -7,8 +7,6 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
-import fs from 'fs';
-import path from 'path';
 import { validateCompleteForm } from '../../lib/validation';
 import { PrismaClient } from '@prisma/client';
 
@@ -84,40 +82,26 @@ export async function POST(request: NextRequest) {
 }
 
 async function saveToDatabase(data: SubmissionData) {
-  // Handle file upload if present
+  // Handle file upload if present - store as base64 for serverless compatibility
   let carPhotoData = null;
   if (data.carPhoto && data.carPhoto.size > 0) {
     try {
-      // Create unique filename with timestamp
-      const timestamp = Date.now();
-      const fileExtension = data.carPhoto.name.split('.').pop();
-      const fileName = `car_${timestamp}.${fileExtension}`;
-      const uploadPath = path.join(process.cwd(), 'public', 'uploads', fileName);
-      
-      // Convert File to buffer and save
+      // Convert File to base64 for database storage
       const bytes = await data.carPhoto.arrayBuffer();
       const buffer = Buffer.from(bytes);
+      const base64 = buffer.toString('base64');
       
-      // Ensure uploads directory exists
-      const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
-      if (!fs.existsSync(uploadsDir)) {
-        fs.mkdirSync(uploadsDir, { recursive: true });
-      }
-      
-      fs.writeFileSync(uploadPath, buffer);
-      const carPhotoPath = `/uploads/${fileName}`;
-      
-      // Store photo metadata as JSON
+      // Store photo metadata and base64 data as JSON
       carPhotoData = JSON.stringify({
         name: data.carPhoto.name,
         size: data.carPhoto.size,
         type: data.carPhoto.type,
-        path: carPhotoPath,
+        data: base64, // Store base64 data instead of file path
       });
       
-      console.log(`Image saved to: ${uploadPath}`);
+      console.log(`Image stored as base64 data (${data.carPhoto.size} bytes)`);
     } catch (error) {
-      console.error('Error saving image file:', error);
+      console.error('Error processing image file:', error);
     }
   }
 
@@ -159,7 +143,7 @@ async function sendEmailNotification(data: SubmissionData) {
     Car Details:
     ${data.carName ? `- Car Name: ${data.carName}` : ''}
     ${data.carColor ? `- Car Color: ${data.carColor}` : ''}
-    ${data.carPhoto ? `- Photo uploaded: ${data.carPhoto.name}` : ''}
+    ${data.carPhoto ? `- Photo uploaded: ${data.carPhoto.name} (${(data.carPhoto.size / 1024).toFixed(1)} KB)` : ''}
     
     Options:
     - Custom Base: ${data.customBase}

@@ -18,7 +18,7 @@ interface Submission {
     name: string;
     size: number;
     type: string;
-    path?: string; // Add path for the saved image
+    data?: string; // Base64 image data for serverless compatibility
   } | null;
   customBase: string;
   acrylicCase: string;
@@ -178,15 +178,27 @@ export default function AdminPage() {
                       {submission.carPhoto && (
                         <div className="space-y-2">
                           <p><span className="text-gray-400">Photo:</span> {submission.carPhoto.name} ({(submission.carPhoto.size / 1024).toFixed(1)} KB)</p>
-                          {submission.carPhoto.path && (
+                          {submission.carPhoto.data && (
                             <div className="mt-2">
                               <Image 
-                                src={submission.carPhoto.path} 
+                                src={`data:${submission.carPhoto.type};base64,${submission.carPhoto.data}`} 
                                 alt={`Car photo: ${submission.carPhoto.name}`}
                                 width={300}
                                 height={200}
                                 className="max-w-xs max-h-48 rounded-lg border border-gray-600 object-cover cursor-pointer hover:border-gray-400 transition-all duration-200"
-                                onClick={() => window.open(submission.carPhoto!.path!, '_blank')}
+                                onClick={() => {
+                                  const newWindow = window.open('', '_blank');
+                                  if (newWindow) {
+                                    newWindow.document.write(`
+                                      <html>
+                                        <head><title>${submission.carPhoto!.name}</title></head>
+                                        <body style="margin:0;background:#000;display:flex;justify-content:center;align-items:center;min-height:100vh;">
+                                          <img src="data:${submission.carPhoto!.type};base64,${submission.carPhoto!.data}" style="max-width:100%;max-height:100%;object-fit:contain;" />
+                                        </body>
+                                      </html>
+                                    `);
+                                  }
+                                }}
                                 title="Click to view full size"
                               />
                             </div>
