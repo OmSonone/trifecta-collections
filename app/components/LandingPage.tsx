@@ -76,7 +76,7 @@ export default function LandingPage() {
     <div className="min-h-screen bg-black text-white">
       <div className="flex min-h-screen">
         {/* Left Side - Logo */}
-        <div className="w-1/2 flex items-center justify-center">
+        <div className="w-1/2 p-24 flex items-center justify-center">
           <Logo />
         </div>
         
